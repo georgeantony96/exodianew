@@ -1,0 +1,351 @@
+/**
+ * EXODIA FINAL Design System Tokens
+ * Based on comprehensive UI/UX research for value betting interfaces
+ * 
+ * Reference: DESIGN_SYSTEM_REFERENCE.md
+ * Last Updated: January 7, 2025
+ */
+
+:root {
+  /* ========================================
+   * BACKGROUND COLORS (Dark Theme Optimized)
+   * ======================================== */
+  --bg-primary: #0D1117;        /* Main background (GitHub-inspired) */
+  --bg-secondary: #161B22;      /* Elevated surfaces */
+  --bg-tertiary: #21262D;       /* Cards and components */
+  --bg-input: #2D333B;          /* Form elements */
+  --bg-hover: #30363D;          /* Hover states */
+  --bg-selected: #1F2937;       /* Selected states */
+  
+  /* ========================================
+   * TEXT HIERARCHY (WCAG 2.2 Compliant)
+   * ======================================== */
+  --text-primary: rgba(255, 255, 255, 0.87);    /* High emphasis (87% white) */
+  --text-secondary: rgba(255, 255, 255, 0.60);  /* Medium emphasis (60% white) */
+  --text-disabled: rgba(255, 255, 255, 0.38);   /* Disabled state (38% white) */
+  --text-inverse: #1F2937;                       /* Text on light backgrounds */
+  
+  /* ========================================
+   * SEMANTIC COLORS (Value Betting Specific)
+   * ======================================== */
+  /* Success Colors (Value Bets, Profits) */
+  --success: #10B981;           /* Primary success color */
+  --success-muted: #059669;     /* Darker success for gradients */
+  --success-light: #34D399;     /* Lighter success for highlights */
+  --success-bg: rgba(16, 185, 129, 0.1);  /* Success background */
+  
+  /* Danger Colors (Losses, Avoid Bets) */
+  --danger: #EF4444;            /* Primary danger color */
+  --danger-muted: #DC2626;      /* Darker danger for gradients */
+  --danger-light: #F87171;      /* Lighter danger for highlights */
+  --danger-bg: rgba(239, 68, 68, 0.1);    /* Danger background */
+  
+  /* Warning Colors (Medium Value, Caution) */
+  --warning: #F59E0B;           /* Primary warning color */
+  --warning-muted: #D97706;     /* Darker warning for gradients */
+  --warning-light: #FBBF24;     /* Lighter warning for highlights */
+  --warning-bg: rgba(245, 158, 11, 0.1);  /* Warning background */
+  
+  /* Info Colors (Neutral Information) */
+  --info: #3B82F6;              /* Primary info color */
+  --info-muted: #2563EB;        /* Darker info for gradients */
+  --info-light: #60A5FA;        /* Lighter info for highlights */
+  --info-bg: rgba(59, 130, 246, 0.1);     /* Info background */
+  
+  /* Accent Colors (Primary Actions, Highlights) */
+  --accent: #8B5CF6;            /* Primary accent color */
+  --accent-muted: #7C3AED;      /* Darker accent for gradients */
+  --accent-light: #A78BFA;      /* Lighter accent for highlights */
+  --accent-bg: rgba(139, 92, 246, 0.1);   /* Accent background */
+  
+  /* ========================================
+   * BORDER COLORS
+   * ======================================== */
+  --border-subtle: #30363D;     /* Subtle borders */
+  --border-medium: #424A53;     /* Medium emphasis borders */
+  --border-strong: #656C76;     /* Strong borders */
+  --border-focus: var(--accent); /* Focus indicator borders */
+  
+  /* ========================================
+   * TYPOGRAPHY SCALE (Modular Scale 1.25)
+   * ======================================== */
+  --font-xs: 12px;              /* Timestamps, metadata */
+  --font-sm: 14px;              /* Secondary information, table data */
+  --font-base: 16px;            /* Body text, primary content */
+  --font-lg: 20px;              /* Card headings, important data */
+  --font-xl: 25px;              /* Section headers */
+  --font-2xl: 32px;             /* Page titles, hero text */
+  --font-3xl: 40px;             /* Large displays */
+  
+  /* Line Heights */
+  --leading-tight: 1.2;         /* Headings, data displays */
+  --leading-normal: 1.5;        /* Body text, readable content */
+  --leading-relaxed: 1.6;       /* Long-form content */
+  
+  /* Font Weights */
+  --font-light: 300;            /* Light emphasis */
+  --font-normal: 400;           /* Normal text */
+  --font-medium: 500;           /* Medium emphasis */
+  --font-semibold: 600;         /* Important text */
+  --font-bold: 700;             /* Strong emphasis */
+  
+  /* ========================================
+   * SPACING SYSTEM (8px Base Grid)
+   * ======================================== */
+  --space-1: 4px;               /* Micro spacing */
+  --space-2: 8px;               /* Base spacing unit */
+  --space-3: 12px;              /* Small spacing */
+  --space-4: 16px;              /* Medium spacing */
+  --space-5: 20px;              /* Medium-large spacing */
+  --space-6: 24px;              /* Large spacing */
+  --space-8: 32px;              /* XL spacing */
+  --space-10: 40px;             /* XXL spacing */
+  --space-12: 48px;             /* Huge spacing */
+  --space-16: 64px;             /* Massive spacing */
+  --space-20: 80px;             /* Section spacing */
+  
+  /* ========================================
+   * BORDER RADIUS
+   * ======================================== */
+  --radius-sm: 4px;             /* Small elements */
+  --radius-base: 6px;           /* Standard elements */
+  --radius-lg: 8px;             /* Large elements */
+  --radius-xl: 12px;            /* Cards */
+  --radius-2xl: 16px;           /* Large cards */
+  --radius-full: 9999px;        /* Pills, badges */
+  
+  /* ========================================
+   * SHADOW SYSTEM (Elevation)
+   * ======================================== */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);           /* Subtle elevation */
+  --shadow-base: 0 4px 6px rgba(0, 0, 0, 0.1);          /* Standard cards */
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);          /* Important elements */
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);          /* Modal overlays */
+  
+  /* Value Bet Specific Shadows */
+  --shadow-success: 0 8px 25px rgba(16, 185, 129, 0.3); /* High value bets */
+  --shadow-warning: 0 4px 15px rgba(245, 158, 11, 0.2); /* Medium value bets */
+  --shadow-danger: 0 4px 15px rgba(239, 68, 68, 0.2);   /* Avoid bets */
+  --shadow-accent: 0 8px 25px rgba(139, 92, 246, 0.3);  /* Pattern discoveries */
+  
+  /* ========================================
+   * ANIMATION TIMING
+   * ======================================== */
+  --duration-fast: 150ms;       /* Quick transitions */
+  --duration-base: 200ms;       /* Standard transitions */
+  --duration-slow: 300ms;       /* Deliberate transitions */
+  --duration-slower: 500ms;     /* Emphasis transitions */
+  
+  /* Easing Functions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ========================================
+   * BREAKPOINTS (for JavaScript usage)
+   * ======================================== */
+  --bp-sm: 640px;               /* Large mobile */
+  --bp-md: 768px;               /* Tablet */
+  --bp-lg: 1024px;              /* Desktop */
+  --bp-xl: 1280px;              /* Large desktop */
+  --bp-2xl: 1536px;             /* Extra large desktop */
+  
+  /* ========================================
+   * Z-INDEX LAYERS
+   * ======================================== */
+  --z-base: 0;                  /* Base layer */
+  --z-elevated: 10;             /* Elevated elements */
+  --z-sticky: 20;               /* Sticky elements */
+  --z-fixed: 30;                /* Fixed elements */
+  --z-overlay-backdrop: 40;     /* Modal backdrops */
+  --z-overlay: 50;              /* Modals, popovers */
+  --z-tooltip: 60;              /* Tooltips */
+  --z-toast: 70;                /* Toast notifications */
+}
+
+/* ========================================
+ * UTILITY CLASSES
+ * ======================================== */
+
+/* Text Utilities */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-disabled { color: var(--text-disabled); }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.text-info { color: var(--info); }
+.text-accent { color: var(--accent); }
+
+/* Background Utilities */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-input { background-color: var(--bg-input); }
+.bg-hover { background-color: var(--bg-hover); }
+
+/* Success Backgrounds */
+.bg-success { background-color: var(--success); }
+.bg-success-muted { background-color: var(--success-muted); }
+.bg-success-light { background-color: var(--success-bg); }
+
+/* Spacing Utilities */
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.p-6 { padding: var(--space-6); }
+.p-8 { padding: var(--space-8); }
+
+.m-1 { margin: var(--space-1); }
+.m-2 { margin: var(--space-2); }
+.m-3 { margin: var(--space-3); }
+.m-4 { margin: var(--space-4); }
+.m-6 { margin: var(--space-6); }
+.m-8 { margin: var(--space-8); }
+
+/* Typography Utilities */
+.text-xs { font-size: var(--font-xs); }
+.text-sm { font-size: var(--font-sm); }
+.text-base { font-size: var(--font-base); }
+.text-lg { font-size: var(--font-lg); }
+.text-xl { font-size: var(--font-xl); }
+.text-2xl { font-size: var(--font-2xl); }
+
+.font-light { font-weight: var(--font-light); }
+.font-normal { font-weight: var(--font-normal); }
+.font-medium { font-weight: var(--font-medium); }
+.font-semibold { font-weight: var(--font-semibold); }
+.font-bold { font-weight: var(--font-bold); }
+
+/* Border Radius Utilities */
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded { border-radius: var(--radius-base); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-2xl { border-radius: var(--radius-2xl); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Shadow Utilities */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow { box-shadow: var(--shadow-base); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+.shadow-success { box-shadow: var(--shadow-success); }
+.shadow-warning { box-shadow: var(--shadow-warning); }
+.shadow-accent { box-shadow: var(--shadow-accent); }
+
+/* ========================================
+ * ACCESSIBILITY UTILITIES
+ * ======================================== */
+
+/* Focus Styles */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-base);
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+ * RESPONSIVE UTILITIES
+ * ======================================== */
+
+/* Touch Target Minimum Size */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  padding: var(--space-3);
+}
+
+/* Container Responsive */
+.container {
+  width: 100%;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .container { max-width: 640px; }
+}
+
+@media (min-width: 768px) {
+  .container { max-width: 768px; }
+}
+
+@media (min-width: 1024px) {
+  .container { max-width: 1024px; }
+}
+
+@media (min-width: 1280px) {
+  .container { max-width: 1280px; }
+}
+
+/* ========================================
+ * VALUE BETTING SPECIFIC ANIMATIONS
+ * ======================================== */
+
+/* Shimmer animation for high-value opportunities */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Pulse animation for urgent bets */
+@keyframes value-pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.animate-value-pulse {
+  animation: value-pulse 2s ease-in-out infinite;
+}
+
+/* Gradient Backgrounds for Components */
+.bg-success-bg { background-color: var(--success-bg); }
+.bg-warning-bg { background-color: var(--warning-bg); }
+.bg-danger-bg { background-color: var(--danger-bg); }
+.bg-info-bg { background-color: var(--info-bg); }
+.bg-accent-bg { background-color: var(--accent-bg); }
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}

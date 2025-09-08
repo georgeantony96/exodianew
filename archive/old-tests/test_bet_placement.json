@@ -1,0 +1,14 @@
+{
+  "simulation_id": 1,
+  "market_type": "over_under", 
+  "market_option": "over_2.5",
+  "selected_odds": 2.75,
+  "bookmaker": "Bet365",
+  "true_probability": 0.55,
+  "edge_percentage": 21.0,
+  "actual_stake": 25.00,
+  "league_id": 1,
+  "match_date": "2025-08-12",
+  "bet_reasoning": "Argentina league pattern - Over 2.5 has strong value",
+  "confidence_level": "HIGH"
+}

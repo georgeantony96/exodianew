@@ -1,0 +1,379 @@
+import { NextRequest, NextResponse } from 'next/server';
+import sqlite3 from 'sqlite3';
+import { promisify } from 'util';
+
+const path = require('path');
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? 'database/exodia.db' 
+  : path.join(process.cwd(), '../database/exodia.db');
+
+// Initialize database connection
+const db = new sqlite3.Database(dbPath);
+const dbAll = promisify(db.all.bind(db)) as (sql: string, params?: any[]) => Promise<any[]>;
+
+// GET /api/intelligence - Get league market intelligence data
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const leagueId = searchParams.get('league_id');
+    const minOddsCount = parseInt(searchParams.get('min_odds_count') || '5');
+    
+    if (leagueId) {
+      // Get intelligence for specific league
+      const intelligence = await dbAll(`
+        SELECT 
+          lmi.*,
+          l.name as league_name,
+          l.country
+        FROM league_market_intelligence lmi
+        JOIN leagues l ON lmi.league_id = l.id
+        WHERE lmi.league_id = ? AND lmi.odds_count >= ?
+        ORDER BY lmi.opportunity_frequency DESC, lmi.odds_avg DESC
+      `, [leagueId, minOddsCount]) as any[];
+      
+      return NextResponse.json({
+        success: true,
+        league_intelligence: intelligence
+      });
+    } else {
+      // Get opportunities across all leagues (Argentina-style discoveries)
+      const opportunities = await dbAll(`
+        SELECT 
+          l.name as league_name,
+          l.country,
+          lmi.market_type,
+          lmi.market_option,
+          lmi.odds_avg,
+          lmi.odds_count,
+          lmi.opportunity_frequency,
+          lmi.market_efficiency,
+          lmi.hit_rate,
+          lmi.avg_edge_when_value,
+          CASE 
+            WHEN lmi.opportunity_frequency > 0.6 THEN 'HIGH VALUE'
+            WHEN lmi.opportunity_frequency > 0.4 THEN 'MEDIUM VALUE'  
+            WHEN lmi.opportunity_frequency > 0.2 THEN 'LOW VALUE'
+            ELSE 'AVOID'
+          END as value_rating
+        FROM leagues l
+        JOIN league_market_intelligence lmi ON l.id = lmi.league_id
+        WHERE lmi.odds_count >= ?
+        ORDER BY lmi.opportunity_frequency DESC, lmi.avg_edge_when_value DESC
+        LIMIT 50
+      `, [minOddsCount]) as any[];
+      
+      return NextResponse.json({
+        success: true,
+        value_opportunities: opportunities
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching intelligence data:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch intelligence data' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/intelligence/update-result - Update intelligence when match results come in
+export async function POST(request: NextRequest) {
+  try {
+    const { simulation_id, actual_results } = await request.json();
+    
+    if (!simulation_id || !actual_results) {
+      return NextResponse.json(
+        { success: false, error: 'Simulation ID and actual results are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Get all odds analysis records for this simulation
+    const oddsAnalysis = await dbAll(`
+      SELECT * FROM match_odds_analysis WHERE simulation_id = ?
+    `, [simulation_id]) as any[];
+    
+    // Update each record with actual result
+    for (const analysis of oddsAnalysis) {
+      const marketKey = `${analysis.market_type}_${analysis.market_option}`;
+      const actualResult = actual_results[marketKey];
+      
+      if (actualResult !== undefined) {
+        const hit = actualResult === true;
+        const edge = hit ? (analysis.input_odds - 1) : -1;
+        
+        // Update the analysis record
+        await db.run(`
+          UPDATE match_odds_analysis 
+          SET 
+            actual_result = ?,
+            edge_realized = ?,
+            result_confirmed_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `, [hit, edge, analysis.id]);
+        
+        // Update league intelligence hit rate and edge
+        await db.run(`
+          UPDATE league_market_intelligence
+          SET 
+            value_opportunities = value_opportunities + CASE WHEN ? > 0 THEN 1 ELSE 0 END,
+            avg_edge_when_value = (
+              CASE 
+                WHEN value_opportunities > 0 THEN 
+                  (avg_edge_when_value * value_opportunities + ?) / (value_opportunities + 1)
+                ELSE ? 
+              END
+            ),
+            hit_rate = (
+              CASE 
+                WHEN odds_count > 0 THEN
+                  (hit_rate * odds_count + CASE WHEN ? THEN 1.0 ELSE 0.0 END) / odds_count
+                ELSE CASE WHEN ? THEN 1.0 ELSE 0.0 END
+              END
+            ),
+            total_profit_loss = total_profit_loss + ?,
+            opportunity_frequency = CASE 
+              WHEN odds_count > 10 THEN
+                LEAST(1.0, value_opportunities * 1.0 / odds_count)
+              ELSE opportunity_frequency
+            END,
+            last_updated = CURRENT_TIMESTAMP
+          WHERE league_id = ? AND market_type = ? AND market_option = ?
+        `, [
+          edge, edge, edge, hit, hit, edge,
+          analysis.league_id, analysis.market_type, analysis.market_option
+        ]);
+      }
+    }
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Intelligence updated with match results',
+      updated_records: oddsAnalysis.length
+    });
+    
+  } catch (error) {
+    console.error('Error updating intelligence with results:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update intelligence' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/intelligence - Manually trigger intelligence update from bet settlement
+export async function PUT(request: NextRequest) {
+  try {
+    const { analysis_id } = await request.json();
+    
+    if (!analysis_id) {
+      return NextResponse.json(
+        { success: false, error: 'Analysis ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Get the analysis record
+    const analysis = await dbAll(`
+      SELECT * FROM match_odds_analysis WHERE id = ?
+    `, [analysis_id]) as any[];
+    
+    if (analysis.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Analysis record not found' },
+        { status: 404 }
+      );
+    }
+    
+    const record = analysis[0];
+    const hit = record.actual_result === 1;
+    const pushed = record.actual_result === 'push';
+    
+    // Calculate realized edge based on CLV and actual result
+    let realizedEdge = 0;
+    if (pushed) {
+      // Push - no edge realized, neutral outcome
+      realizedEdge = 0;
+    } else if (record.closing_odds && record.clv_percentage) {
+      // Factor in CLV - positive CLV suggests we got better odds than closing
+      const clvFactor = 1 + (record.clv_percentage / 100);
+      realizedEdge = hit ? (record.selected_odds * clvFactor - 1) : -1;
+    } else {
+      realizedEdge = hit ? (record.selected_odds - 1) : -1;
+    }
+    
+    // Update league intelligence with dual odds learning
+    await db.run(`
+      INSERT OR REPLACE INTO league_market_intelligence (
+        league_id, market_type, market_option, odds_avg, odds_count,
+        value_opportunities, avg_edge_when_value, hit_rate, 
+        total_profit_loss, market_efficiency, opportunity_frequency,
+        avg_clv_when_selected, closing_odds_accuracy, last_updated
+      ) 
+      SELECT 
+        ?,
+        ?,
+        ?,
+        COALESCE(
+          (SELECT odds_avg FROM league_market_intelligence 
+           WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+          ?
+        ),
+        COALESCE(
+          (SELECT odds_count FROM league_market_intelligence 
+           WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+          0
+        ) + 1,
+        COALESCE(
+          (SELECT value_opportunities FROM league_market_intelligence 
+           WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+          0
+        ) + CASE WHEN ? > 0 THEN 1 ELSE 0 END,
+        CASE 
+          WHEN (SELECT value_opportunities FROM league_market_intelligence 
+                WHERE league_id = ? AND market_type = ? AND market_option = ?) > 0 
+          THEN (
+            (SELECT avg_edge_when_value * value_opportunities FROM league_market_intelligence 
+             WHERE league_id = ? AND market_type = ? AND market_option = ?) + ?
+          ) / (
+            (SELECT value_opportunities FROM league_market_intelligence 
+             WHERE league_id = ? AND market_type = ? AND market_option = ?) + 1
+          )
+          ELSE ?
+        END,
+        CASE 
+          WHEN (SELECT odds_count FROM league_market_intelligence 
+                WHERE league_id = ? AND market_type = ? AND market_option = ?) > 0 
+          THEN (
+            (SELECT hit_rate * odds_count FROM league_market_intelligence 
+             WHERE league_id = ? AND market_type = ? AND market_option = ?) + 
+            CASE WHEN ? THEN 1.0 ELSE 0.0 END
+          ) / (
+            (SELECT odds_count FROM league_market_intelligence 
+             WHERE league_id = ? AND market_type = ? AND market_option = ?) + 1
+          )
+          ELSE CASE WHEN ? THEN 1.0 ELSE 0.0 END
+        END,
+        COALESCE(
+          (SELECT total_profit_loss FROM league_market_intelligence 
+           WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+          0
+        ) + ?,
+        -- Market efficiency based on CLV tracking
+        CASE 
+          WHEN ? IS NOT NULL THEN
+            COALESCE(
+              (SELECT market_efficiency FROM league_market_intelligence 
+               WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+              0.5
+            ) * 0.9 + (CASE WHEN ? > 0 THEN 0.3 ELSE 0.7 END) * 0.1
+          ELSE COALESCE(
+            (SELECT market_efficiency FROM league_market_intelligence 
+             WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+            0.5
+          )
+        END,
+        -- Opportunity frequency
+        CASE 
+          WHEN (SELECT odds_count FROM league_market_intelligence 
+                WHERE league_id = ? AND market_type = ? AND market_option = ?) >= 10 
+          THEN LEAST(1.0, 
+            (COALESCE(
+              (SELECT value_opportunities FROM league_market_intelligence 
+               WHERE league_id = ? AND market_type = ? AND market_option = ?), 0
+            ) + CASE WHEN ? > 0 THEN 1 ELSE 0 END) * 1.0 / 
+            (COALESCE(
+              (SELECT odds_count FROM league_market_intelligence 
+               WHERE league_id = ? AND market_type = ? AND market_option = ?), 0
+            ) + 1)
+          )
+          ELSE COALESCE(
+            (SELECT opportunity_frequency FROM league_market_intelligence 
+             WHERE league_id = ? AND market_type = ? AND market_option = ?), 
+            0.1
+          )
+        END,
+        -- Average CLV when we selected this market
+        CASE 
+          WHEN ? IS NOT NULL THEN
+            CASE 
+              WHEN (SELECT avg_clv_when_selected FROM league_market_intelligence 
+                    WHERE league_id = ? AND market_type = ? AND market_option = ?) IS NOT NULL 
+              THEN (
+                (SELECT avg_clv_when_selected FROM league_market_intelligence 
+                 WHERE league_id = ? AND market_type = ? AND market_option = ?) + ?
+              ) / 2.0
+              ELSE ?
+            END
+          ELSE (SELECT avg_clv_when_selected FROM league_market_intelligence 
+                WHERE league_id = ? AND market_type = ? AND market_option = ?)
+        END,
+        -- Closing odds accuracy (how often closing line was "right")
+        CASE 
+          WHEN ? IS NOT NULL THEN
+            CASE 
+              WHEN (SELECT closing_odds_accuracy FROM league_market_intelligence 
+                    WHERE league_id = ? AND market_type = ? AND market_option = ?) IS NOT NULL 
+              THEN (
+                (SELECT closing_odds_accuracy FROM league_market_intelligence 
+                 WHERE league_id = ? AND market_type = ? AND market_option = ?) * 0.9 + 
+                (CASE WHEN (? > 0 AND ?) OR (? <= 0 AND NOT ?) THEN 1.0 ELSE 0.0 END) * 0.1
+              )
+              ELSE CASE WHEN (? > 0 AND ?) OR (? <= 0 AND NOT ?) THEN 1.0 ELSE 0.0 END
+            END
+          ELSE (SELECT closing_odds_accuracy FROM league_market_intelligence 
+                WHERE league_id = ? AND market_type = ? AND market_option = ?)
+        END,
+        CURRENT_TIMESTAMP
+    `, [
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, record.selected_odds,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, realizedEdge,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, realizedEdge,
+      record.league_id, record.market_type, record.market_option, realizedEdge,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, hit,
+      record.league_id, record.market_type, record.market_option, hit,
+      record.league_id, record.market_type, record.market_option, record.profit_loss,
+      record.clv_percentage,
+      record.league_id, record.market_type, record.market_option, record.clv_percentage,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, realizedEdge,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option,
+      record.clv_percentage,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, record.clv_percentage, record.clv_percentage,
+      record.league_id, record.market_type, record.market_option,
+      record.closing_odds,
+      record.league_id, record.market_type, record.market_option,
+      record.league_id, record.market_type, record.market_option, 
+      record.clv_percentage, hit, record.clv_percentage, hit,
+      record.clv_percentage, hit, record.clv_percentage, hit,
+      record.league_id, record.market_type, record.market_option
+    ]);
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Intelligence updated with bet settlement data',
+      learning_data: {
+        league_id: record.league_id,
+        market: `${record.market_type}_${record.market_option}`,
+        hit: hit,
+        realized_edge: realizedEdge,
+        clv_percentage: record.clv_percentage,
+        closing_odds_available: !!record.closing_odds
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error updating intelligence manually:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update intelligence' },
+      { status: 500 }
+    );
+  }
+}

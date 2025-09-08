@@ -1,0 +1,30 @@
+{
+  "name": "exodia-final-root",
+  "version": "4.2.0",
+  "description": "EXODIA FINAL - Advanced Sports Betting Intelligence System",
+  "scripts": {
+    "install-deps": "npm install && cd frontend && npm install",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm run start",
+    "lint": "cd frontend && npm run lint",
+    "collect-data": "node agones-data-collector.js",
+    "session": "start-session.bat",
+    "session-ps": "powershell -ExecutionPolicy Bypass -File start-session.ps1"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "sports-betting",
+    "mathematical-analysis",
+    "pattern-recognition",
+    "automation"
+  ],
+  "author": "EXODIA FINAL Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

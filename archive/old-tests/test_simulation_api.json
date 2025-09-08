@@ -1,0 +1,31 @@
+{
+  "home_team_id": 1,
+  "away_team_id": 2,
+  "league_id": 1,
+  "match_date": "2025-08-08",
+  "distribution_type": "poisson",
+  "iterations": 10000,
+  "boost_settings": {
+    "home_advantage": 0.20,
+    "custom_home_boost": 0.0,
+    "custom_away_boost": 0.0,
+    "enable_streak_analysis": false,
+    "enable_form_weighting": false
+  },
+  "historical_data": {
+    "h2h": [],
+    "home_home": [],
+    "away_away": []
+  },
+  "bookmaker_odds": {
+    "1x2": {
+      "home": 2.50,
+      "draw": 3.20,
+      "away": 2.80
+    },
+    "ou25": {
+      "over": 1.80,
+      "under": 2.00
+    }
+  }
+}

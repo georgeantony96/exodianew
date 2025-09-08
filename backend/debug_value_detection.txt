@@ -1,0 +1,3 @@
+Original odds: {'1x2': {'home': 2.09, 'draw': 3.34, 'away': 3.46}, 'over_under': {'ou25': {'over': 2.06, 'under': 1.7}, 'ou35': {'over': 2.87, 'under': 1.41}, 'ou45': {'over': 5.28, 'under': 1.18}, 'ou55': {'over': 12.18, 'under': 1.02}}, 'both_teams_score': {'yes': 2.16, 'no': 1.89}}
+Converted odds: {'1x2_home': 2.09, '1x2_draw': 3.34, '1x2_away': 3.46, 'goals_over_2_5': 2.06, 'goals_under_2_5': 1.7, 'goals_over_3_5': 2.87, 'goals_under_3_5': 1.41, 'btts_yes': 2.16, 'btts_no': 1.89}
+Converted odds count: 9
