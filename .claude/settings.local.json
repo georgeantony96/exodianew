@@ -84,7 +84,10 @@
       "Bash(npm ls:*)",
       "Bash(npm rebuild:*)",
       "Bash(./start-session.bat)",
-      "Bash(npx playwright install:*)"
+      "Bash(npx playwright install:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
