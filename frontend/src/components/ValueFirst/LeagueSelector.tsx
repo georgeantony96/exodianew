@@ -57,7 +57,7 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({
     intelligence_enabled: true
   });
 
-  // Load available leagues
+  // Load available leagues and auto-select Universal Pattern
   useEffect(() => {
     const loadLeagues = async () => {
       setIsLoadingLeagues(true);
@@ -67,8 +67,24 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({
         if (response.ok) {
           const data = await response.json();
           console.log('Loaded leagues:', data.leagues); // Debug log
-          setLeagues(data.leagues || []);
-          if (data.leagues.length === 0) {
+          const loadedLeagues = data.leagues || [];
+          setLeagues(loadedLeagues);
+          
+          // Auto-select Universal Pattern if not already selected
+          if (!selectedLeague && loadedLeagues.length > 0) {
+            const universalPattern = loadedLeagues.find(league => 
+              league.name.toLowerCase().includes('universal') || 
+              league.name.toLowerCase().includes('pattern')
+            );
+            
+            if (universalPattern) {
+              console.log('🎯 Auto-selecting Universal Pattern league for fast input');
+              onLeagueSelect(universalPattern);
+              setSearchQuery(universalPattern.name);
+            }
+          }
+          
+          if (loadedLeagues.length === 0) {
             setLeaguesError('No leagues found. Add your first league to get started.');
           }
         } else {
@@ -84,7 +100,7 @@ const LeagueSelector: React.FC<LeagueSelectorProps> = ({
     };
 
     loadLeagues();
-  }, []);
+  }, [selectedLeague, onLeagueSelect]);
 
   // Load league intelligence and discovered patterns when a league is selected
   useEffect(() => {

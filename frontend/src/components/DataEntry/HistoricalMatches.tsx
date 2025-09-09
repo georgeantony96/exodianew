@@ -5,8 +5,6 @@ interface Match {
   id?: number;
   home_team: string;
   away_team: string;
-  home_score_ht: number;
-  away_score_ht: number;
   home_score_ft: number;
   away_score_ft: number;
   match_date?: string;
@@ -44,29 +42,23 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
     const initialMatches = {
       h2h: historicalMatches.h2h.length > 0 ? historicalMatches.h2h.map(m => ({
         home_team: m.home_team || homeTeamName, away_team: m.away_team || awayTeamName, 
-        home_score_ht: m.home_score_ht || 0, away_score_ht: m.away_score_ht || 0, 
         home_score_ft: m.home_score_ft || 0, away_score_ft: m.away_score_ft || 0 
       })) : Array(9).fill(null).map(() => ({ 
         home_team: homeTeamName, away_team: awayTeamName, 
-        home_score_ht: 0, away_score_ht: 0, 
         home_score_ft: 0, away_score_ft: 0 
       })),
       home_home: historicalMatches.home_home.length > 0 ? historicalMatches.home_home.map(m => ({
         home_team: m.home_team || homeTeamName, away_team: m.away_team || '', 
-        home_score_ht: m.home_score_ht || 0, away_score_ht: m.away_score_ht || 0, 
         home_score_ft: m.home_score_ft || 0, away_score_ft: m.away_score_ft || 0 
       })) : Array(9).fill(null).map(() => ({ 
         home_team: homeTeamName, away_team: '', 
-        home_score_ht: 0, away_score_ht: 0, 
         home_score_ft: 0, away_score_ft: 0 
       })),
       away_away: historicalMatches.away_away.length > 0 ? historicalMatches.away_away.map(m => ({
         home_team: m.home_team || '', away_team: m.away_team || awayTeamName, 
-        home_score_ht: m.home_score_ht || 0, away_score_ht: m.away_score_ht || 0, 
         home_score_ft: m.home_score_ft || 0, away_score_ft: m.away_score_ft || 0 
       })) : Array(9).fill(null).map(() => ({ 
         home_team: '', away_team: awayTeamName, 
-        home_score_ht: 0, away_score_ht: 0, 
         home_score_ft: 0, away_score_ft: 0 
       }))
     };
@@ -84,7 +76,6 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
     if (!updatedMatches[tabKey][index]) {
       updatedMatches[tabKey][index] = { 
         home_team: '', away_team: '', 
-        home_score_ht: 0, away_score_ht: 0, 
         home_score_ft: 0, away_score_ft: 0 
       };
     }
@@ -102,7 +93,6 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
     // Create new match with proper team positioning
     let newMatch = { 
       home_team: '', away_team: '', 
-      home_score_ht: 0, away_score_ht: 0, 
       home_score_ft: 0, away_score_ft: 0 
     };
     
@@ -179,7 +169,6 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
     while (currentMatches.length < 9) {
       currentMatches.push({ 
         home_team: '', away_team: '', 
-        home_score_ht: 0, away_score_ht: 0, 
         home_score_ft: 0, away_score_ft: 0 
       });
     }
@@ -187,13 +176,9 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
     // Fill with random data for all 9 matches
     currentMatches.forEach((match, index) => {
       if (index < 9) { // Fill all 9 matches
-        const homeHT = generateRandomScore();
-        const awayHT = generateRandomScore();
-        // FT scores must be >= HT scores (add additional goals if needed)
-        const additionalHomeGoals = Math.random() < 0.6 ? generateRandomScore() : 0; // 60% chance of additional goals
-        const additionalAwayGoals = Math.random() < 0.6 ? generateRandomScore() : 0;
-        const homeFT = homeHT + additionalHomeGoals;
-        const awayFT = awayHT + additionalAwayGoals;
+        // Generate random FT scores directly
+        const homeFT = generateRandomScore();
+        const awayFT = generateRandomScore();
         
         // Set proper team names based on context
         if (tabKey === 'h2h') {
@@ -207,8 +192,6 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
           match.away_team = awayTeamName;
         }
         
-        match.home_score_ht = homeHT;
-        match.away_score_ht = awayHT;
         match.home_score_ft = homeFT;
         match.away_score_ft = awayFT;
       }
@@ -272,30 +255,7 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
           )}
         </td>
         
-        {/* HT Score */}
-        <td className="p-3">
-          <div className="flex gap-1">
-            <input
-              type="number"
-              min="0"
-              value={match.home_score_ht}
-              onChange={(e) => updateMatch(tabKey, index, 'home_score_ht', parseInt(e.target.value) || 0)}
-              className="w-12 p-2 border border-border rounded-lg text-sm text-center bg-input text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring hover:border-accent-foreground transition-colors"
-              readOnly={isReadOnlyMatch}
-            />
-            <span className="text-xs self-center text-muted-foreground">-</span>
-            <input
-              type="number"
-              min="0"
-              value={match.away_score_ht}
-              onChange={(e) => updateMatch(tabKey, index, 'away_score_ht', parseInt(e.target.value) || 0)}
-              className="w-12 p-2 border border-border rounded-lg text-sm text-center bg-input text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring hover:border-accent-foreground transition-colors"
-              readOnly={isReadOnlyMatch}
-            />
-          </div>
-        </td>
-        
-        {/* FT Score */}
+        {/* Final Score */}
         <td className="p-3">
           <div className="flex gap-1">
             <input
@@ -303,16 +263,18 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
               min="0"
               value={match.home_score_ft}
               onChange={(e) => updateMatch(tabKey, index, 'home_score_ft', parseInt(e.target.value) || 0)}
-              className="w-12 p-2 border border-border rounded-lg text-sm text-center bg-input text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring hover:border-accent-foreground transition-colors"
+              className="w-16 p-2 border border-border rounded-lg text-sm text-center bg-input text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring hover:border-accent-foreground transition-colors font-bold"
+              placeholder="0"
               readOnly={isReadOnlyMatch}
             />
-            <span className="text-xs self-center text-muted-foreground">-</span>
+            <span className="text-sm self-center text-muted-foreground font-bold">-</span>
             <input
               type="number"
               min="0"
               value={match.away_score_ft}
               onChange={(e) => updateMatch(tabKey, index, 'away_score_ft', parseInt(e.target.value) || 0)}
-              className="w-12 p-2 border border-border rounded-lg text-sm text-center bg-input text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring hover:border-accent-foreground transition-colors"
+              className="w-16 p-2 border border-border rounded-lg text-sm text-center bg-input text-card-foreground focus:ring-2 focus:ring-ring focus:border-ring hover:border-accent-foreground transition-colors font-bold"
+              placeholder="0"
               readOnly={isReadOnlyMatch}
             />
           </div>
@@ -412,8 +374,7 @@ const HistoricalMatches: React.FC<HistoricalMatchesProps> = ({
                  activeTab === 'away_away' ? awayTeamName : 
                  'Away Team'}
               </th>
-              <th className="p-3 text-left font-semibold text-card-foreground">HT Score</th>
-              <th className="p-3 text-left font-semibold text-card-foreground">FT Score</th>
+              <th className="p-3 text-left font-semibold text-card-foreground">Final Score</th>
               <th className="p-3 text-left font-semibold text-card-foreground">Action</th>
             </tr>
           </thead>

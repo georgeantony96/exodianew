@@ -37,8 +37,21 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
       const url = leagueFilter ? `/api/teams?league_id=${leagueFilter}` : '/api/teams';
       const response = await fetch(url);
       const data = await response.json();
-      // Server-side filtering is now handled by the API, so no need for client-side filtering
-      setTeams(data.teams || []);
+      const loadedTeams = data.teams || [];
+      setTeams(loadedTeams);
+      
+      // Auto-select Home/Away teams if they exist and no teams are selected
+      if (loadedTeams.length > 0 && !selectedHomeTeam && !selectedAwayTeam) {
+        const homeTeam = loadedTeams.find(team => team.name.toLowerCase().includes('home'));
+        const awayTeam = loadedTeams.find(team => team.name.toLowerCase().includes('away'));
+        
+        if (homeTeam && awayTeam) {
+          console.log('🎯 Auto-selecting Home/Away teams for fast input');
+          onTeamSelect(homeTeam, awayTeam);
+          setHomeTeamSearch(homeTeam.name);
+          setAwayTeamSearch(awayTeam.name);
+        }
+      }
     } catch (error) {
       console.error('Error fetching teams:', error);
     }
